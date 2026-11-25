@@ -123,9 +123,9 @@ A new dashboard opens in view mode. Click **Edit** in the top right to enter edi
 
 You can add more panel groups to better organize your dashboard. This is useful for grouping related visualizations, effectively allowing you to have multiple views within a single dashboard.
 
-To add a new group, click **Panel Group** in the edit toolbar. You can name the group and set whether it starts expanded or collapsed when the dashboard loads. A dashboard with a single group always shows that group expanded.
+To add a new group, click **Add a panel group** in the **Edit dashboard** side panel and give it a title. Viewers can collapse a titled group when the dashboard has more than one. To make a group start collapsed, set its `display.collapse.open` to `false` in the [dashboard JSON](#exporting-and-editing-the-dashboard-as-json). A dashboard with a single group always shows that group expanded.
 
-To add a new visualization, add a panel to a group by clicking **Panel** in the edit toolbar. Inside each panel, you configure a chart and the SQL query that powers it.
+To add a new visualization, click **Add a panel** in the side panel, or the add panel button on a group. Inside each panel, you configure a chart and the SQL query that powers it.
 
 ### Chart Types
 
@@ -168,28 +168,25 @@ Variables let you change what a dashboard shows without editing its queries. You
 To add variables to a custom dashboard:
 
 1. Open the dashboard and click **Edit** in the top right.
-2. Click **Variables** in the edit toolbar to open the variable settings panel.
-3. Click **+ Add variable**.
-4. Define and configure your variables, then click **Save** on the dashboard.
+2. Click **Add a variable** in the **Edit dashboard** side panel, then pick the variable type.
+3. Fill in the variable's settings. Its selector appears in the dashboard toolbar as you go.
+4. Click **Save**.
 
-![A dashboard toolbar highlighting the edit variables button](../../images/guide/dashboard-edit-variables-button.png)
+![The Edit dashboard side panel asking what kind of variable to create](../../images/guide/dashboard-add-variable.png)
 
-Each variable has a **Name** (how you reference it in queries), plus an optional **Display Label** and **Description** shown on its selector. There are two variable types:
+To change a variable later, hover over its selector in edit mode and click **Edit variable**.
 
-- **Text variable**: viewers type any value into a text field. Check **Constant** to make the field read-only. This is useful for a value you reference in several queries and want to change in one place.
-- **List variable**: viewers pick from a dropdown of options.
+Each variable has a **Name** (how you reference it in queries) and an optional **Label** shown on its selector. There are three variable types:
+
+- **Static list**: viewers pick from a dropdown of values that you type in. Use it for a short list that doesn't change, such as environments.
+- **Query list**: viewers pick from a dropdown of the values that a SQL query returns. Use it for values that change with your data, such as service names.
+- **Text**: viewers type any value into a text box. Use it for a value with no fixed list, such as a search term.
+
+![The settings of a static list variable in the Edit dashboard side panel](../../images/guide/dashboard-variable-editor.png)
 
 #### List variables
 
-The **Source** setting controls where a list variable's options come from:
-
-- **Static List Variable**: options you type in by hand. Paste a comma-separated list to add several values at once.
-- **Logfire Query List Variable**: options are loaded from a SQL query against your data. The query must return exactly one column, and each distinct non-null value becomes an option.
-- **Time Bucket Variable**: time intervals derived from the dashboard's time range, like the built-in [`$resolution`](#resolution-variable) variable. You'll rarely need to create one yourself, and a variable named `resolution` is ignored in favor of the built-in one.
-
-![A dashboard variable editor showing the source dropdown](../../images/guide/dashboard-variable-source.png)
-
-A query source keeps the dropdown in sync with your data automatically. For example, if your metrics record a `tenant_id` attribute, this query fills the dropdown with every tenant ID captured on the `api.requests` metric:
+A query list keeps the dropdown in sync with your data automatically. The query must return exactly one column, and each distinct non-null value becomes an option. For example, if your metrics record a `tenant_id` attribute, this query fills the dropdown with every tenant ID captured on the `api.requests` metric:
 
 ```sql
 SELECT DISTINCT attributes->>'tenant_id'
@@ -203,29 +200,25 @@ ORDER BY 1
 
 List variables have a few more settings:
 
-- **Allow Multiple Values**: viewers can select several options at once. The variable then resolves to a list of values in SQL, which changes how you compare it: see [using variables in queries](#using-variables-in-queries).
-- **Allow All option**: adds an **All** entry to the dropdown. By default, selecting **All** fills the variable with every option in the list. Tick **Use Custom All Value** to send a fixed placeholder string instead: the query pattern for this is also covered in [using variables in queries](#using-variables-in-queries).
-- **Capturing Regexp Filter**: a regular expression that transforms the options _after they load._ The expression must contain at least one capturing group (a part of the pattern wrapped in parentheses). An option is kept only if it matches, and its value is replaced by the captured text. For example, with the options `api-prod`, `web-prod`, and `api-staging`, the filter `(.*)-prod` produces the options `api` and `web`.
-- **Sort**: order the options alphabetically or numerically, ascending or descending. By default, options keep the order they were loaded in.
+- **Allow multiple values**: viewers can select several options at once. The variable then resolves to a list of values in SQL, which changes how you compare it: see [using variables in queries](#using-variables-in-queries).
+- **Include an Any option**: adds an **Any** entry that leaves the filter off. Your query has to handle it: see [using variables in queries](#using-variables-in-queries).
+- **Default value**: the option viewers see when they first open the dashboard. See [Variable defaults](#variable-defaults).
 
 #### Variable defaults
 
-Each variable has a default value that viewers see when they first open the dashboard. To change it, enter edit mode, pick the value you want in the toolbar selector, and click **Save**. The save dialog lists what changed and asks whether to keep the new selection as the default.
+Each variable has a default value that viewers see when they first open the dashboard. To change it, set **Default value** in the variable's settings. Or enter edit mode, pick the value you want in the toolbar selector, and click **Save**. The save dialog lists what changed and asks whether to keep the new selection as the default.
 
 When a viewer changes a variable away from its default, a small reset button appears on its selector. Clicking it restores the default.
 
-#### Panel variables
+#### Variables in panel groups
 
-Besides dashboard-level variables, an individual panel can declare its own variables. A panel variable renders as a small selector inside the panel (below its title) and re-filters only that panel's queries; the dashboard toolbar and other panels are unaffected. This is useful for dashboards that mix fleet-wide panels with a drill-down panel, where a toolbar variable that re-filters everything would be too broad.
+A variable can also sit in the dashboard grid as a control, next to the panels it filters. A control in a titled panel group filters only the panels in that group, and the toolbar and other groups are unaffected. This is useful for dashboards that mix overview panels with a drill-down group, where a toolbar variable that re-filters everything would be too broad. A control in an untitled group filters the whole dashboard, like a toolbar variable.
 
-To add a variable to a panel:
+To move a variable into the grid, hover over its selector in edit mode and click **Move to dashboard**. Then drag the control into the group you want. To put it back, click **Pin to toolbar** on the control.
 
-1. Open the panel editor (when creating the panel, or via **Edit** on an existing panel).
-2. Switch to the **Variables** tab.
-3. Click **Add panel variable** and configure it. Panel variables support the same **Text** and **List** types as dashboard variables.
-4. Save the variable, then save the panel.
+Queries reference a control's variable with the same `$variable_name` syntax as any other variable.
 
-Panel variables are referenced in the panel's SQL with the same `$your_variable_name` syntax. If a panel variable has the same name as a dashboard variable, the panel variable takes precedence for that panel's queries. The variable definition is saved with the panel, so the selector persists across reloads.
+Dashboards made with the earlier panel variables show each one as a control above its panel. That control filters every panel in its group.
 
 #### Using variables in queries
 
@@ -237,21 +230,31 @@ SELECT count() FROM records WHERE service_name = $service_name
 
 Write the variable bare, without quotes. Logfire sends the selected value separately from the query and inserts it as a properly quoted SQL value. Writing `'$service_name'` in quotes would search for the literal text `$service_name` instead.
 
-A variable with **Allow Multiple Values** enabled resolves to a list of values rather than a single one. Compare it with `= ANY(...)` instead of `=`:
+A variable with **Allow multiple values** turned on resolves to a list of values rather than a single one. Compare it with `= ANY(...)` instead of `=`:
 
 ```sql
 SELECT count() FROM records WHERE service_name = ANY($service_name)
 ```
 
-When a viewer selects **All** on a multiple-value variable, it resolves to the list of every option, so the `ANY` comparison above matches all of them.
+When a viewer selects every option, the variable resolves to the list of all of them, so the `ANY` comparison above matches them all.
 
-For a single-value variable, **All** needs different handling: a list of every option can't be compared with `=`, and the query fails. Instead, tick **Use Custom All Value**, set **Custom All Value** to a placeholder string that will never appear in your data, and write the query to skip the filter when it sees that placeholder:
+A variable with **Include an Any option** turned on needs one more step. When a viewer picks **Any**, or clears every option on a multiple-value variable, the query receives the placeholder `__logfire_all_values__` in place of a real value. Write the query to skip the filter when it sees that placeholder:
 
 ```sql
 SELECT count()
 FROM records
-WHERE (service_name = $service_name OR $service_name = 'all-values')
+WHERE ($service_name = '__logfire_all_values__' OR service_name = $service_name)
 ```
+
+For a multiple-value variable, the placeholder arrives as a one-item list:
+
+```sql
+SELECT count()
+FROM records
+WHERE (array_has($service_name, '__logfire_all_values__') OR service_name = ANY($service_name))
+```
+
+To send a different placeholder, pick **Set the value sent for Any** among the variable's options in the side panel.
 
 Variables can only be used in SQL queries. They cannot be used in chart titles or other non-query fields.
 
@@ -337,14 +340,14 @@ Please also refer to the [SQL Reference](../../reference/sql.md) and [Metrics Sc
 Click **Edit** in the top right of a custom dashboard to enter edit mode. In edit mode:
 
 - The dashboard title becomes an editable text field.
-- The toolbar shows the **Variables**, **Panel**, and **Panel Group** buttons, plus **Edit JSON**.
+- The **Edit dashboard** side panel opens. Use it to add panels, panel groups, and variables, or to edit the dashboard's JSON.
 - You can move and resize panels, and reorder panel groups.
 
 Your changes stay in your browser until you click **Save**. **Cancel** discards them and restores the saved dashboard. If you leave the page without saving, Logfire keeps a local draft in your browser and restores it the next time you open the dashboard there.
 
 If you changed a variable selection while editing, the save dialog asks whether to store it as the dashboard's new default. See [Variable defaults](#variable-defaults).
 
-![Edit button](../../images/guide/browser-edit-layout-button.png)
+![A dashboard in edit mode, with the Edit dashboard side panel open](../../images/guide/dashboard-edit-mode.png)
 
 ### Move panels
 
@@ -364,12 +367,20 @@ While in edit mode, click the up and down arrows in the top right corner of a pa
 
 ![Reorder panel groups](../../images/guide/browser-reorder-panel-group.png)
 
+### Undo and redo
+
+While in edit mode, click the undo and redo arrows at the bottom of the **Edit dashboard** side panel to step back and forward through your changes. The keyboard shortcuts are `Cmd+Z` and `Cmd+Shift+Z` on macOS, `Ctrl+Z` and `Ctrl+Y` on Windows, and `Ctrl+Z` and `Ctrl+Shift+Z` on Linux.
+
+To take back a single change without losing the changes you made after it, hover over your reply to it in the side panel and click **Undo this choice**. Click **Redo this choice** to bring it back.
+
+![The Undo this choice button on a reply in the Edit dashboard side panel](../../images/guide/dashboard-undo-choice.png)
+
 ### Exporting and editing the dashboard as JSON
 
 Every dashboard is stored as a JSON document. This is the same format the [Terraform provider](../../how-to-guides/infrastructure-as-code.md) uses, and the format you import when creating a custom dashboard from JSON.
 
-- In view mode, click **Export dashboard** in the toolbar to open a side panel showing the dashboard's JSON. Click **Download** to save it as a file. The dashboard stays interactive while the panel is open.
-- In edit mode, click **Edit JSON** to change the JSON directly. Edits apply to the dashboard as you type. Logfire validates the JSON against the dashboard schema and shows the first problem in the editor's status line. A dashboard with invalid JSON can't be saved.
+- In view mode, click **Export dashboard** in the toolbar to open a side panel showing the dashboard's JSON. Click **Download JSON** to save it as a file. The dashboard stays interactive while the panel is open.
+- In edit mode, click **Edit the dashboard JSON directly** in the side panel. Edits apply to the dashboard as you type. Logfire validates the JSON against the dashboard schema and shows the first problem in the editor's status line. Invalid JSON isn't applied: the dashboard keeps the last valid version.
 
 ![The dashboard export flyout](../../images/guide/dashboard-download-json.png)
 
